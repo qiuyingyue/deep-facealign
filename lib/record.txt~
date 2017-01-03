@@ -1,0 +1,10 @@
+
+shift, scale, shift and scale:    range (0,1)   0.012
+
+random shift and scale:   range (0,1)   0.0165
+random shift and scale:   range (-0.5,0.5)   0.0167
+
+RGB   0.02
+
+
+shift(-0.25,0.25), scale(-0.08,0.4), shift and scale, output range (0,1)      0.0036 

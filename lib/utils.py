@@ -37,7 +37,7 @@ class BBox(object):
 		return self.norm_bbox
 	def flip_norm_box(self):
 		bb=self.norm_bbox
-		return[-bb[0],-bb[1],bb[2],bb[3]]
+		return[-bb[1],-bb[0],bb[2],bb[3]]
 		 
 	def expand(self, scale=0.05):
 		bbox = [self.left, self.right, self.top, self.bottom]
@@ -81,7 +81,7 @@ class BBox(object):
 		return BBox([left, right, top, bottom],[leftR, rightR, topR, bottomR])
 		
 	def __repr__(self):
-		return  str(self.bbox)+str(self.norm_bbox)+"\n"
+		return  str(self.bbox)+str(self.norm_bbox)
         
 
 def logger(msg):
@@ -150,7 +150,7 @@ def getDataFromTxt(txt, with_landmark=True):
         img_path = os.path.join(dirname, components[0]) # file path
         # bounding box, (left, right, top, bottom)
         bbox = (components[1], components[2], components[3], components[4])
-        bbox = [int(_) for _ in bbox]
+        bbox = [int(float(_)) for _ in bbox]
         # landmark
         if not with_landmark:
             result.append((img_path, BBox(bbox)))
@@ -264,12 +264,13 @@ def shift(img,bbox,landmark,ioulimit=0.4):
 	#Positives: IoU above 0.65 to a ground truth face;
 	#Part faces: IoU between 0.4 and 0.65 to a ground truth face;
 	#Landmark faces: faces labeled 5 landmarks’positions. 
+	rnd=0
 	while(True):
 		
-		new_center=(np.random.rand(),np.random.rand())  #random number from (0, 1)
-		x_shift=new_center[0]-0.5
-		y_shift=new_center[1]-0.5
-		new_box=bbox.subBBox(-x_shift,-x_shift,-y_shift,-y_shift)
+		#new_center=(np.random.rand(),np.random.rand())  #random number from (0, 1)
+		x_shift=np.random.uniform(-0.25,0.25)
+		y_shift=np.random.uniform(-0.25,0.25)
+		new_box=bbox.subBBox(x_shift,x_shift,y_shift,y_shift)
 
 		IOU=getIOU(bbox,new_box)
 		
@@ -280,21 +281,28 @@ def shift(img,bbox,landmark,ioulimit=0.4):
 				if landmark is not None:	
 					new_landmark=np.zeros((5, 2))				
 					for i in range(5):					
-						new_landmark[i][0]=landmark[i][0]+x_shift								
-						new_landmark[i][1]=landmark[i][1]+y_shift
+						new_landmark[i][0]=landmark[i][0]-x_shift								
+						new_landmark[i][1]=landmark[i][1]-y_shift
 				else:
 					new_landmark=None
 				
 				new_face=img[new_box.top:new_box.bottom+1,new_box.left:new_box.right+1]			
 				return new_face,new_box,new_landmark,IOU
-			else:
+			else:			
 				print "old",bbox
-				print "new",new_box		
+				print "new",new_box	
+				rnd+=1
+				print '**********************',rnd
+				if rnd>100:
+					print 'failed'
+					return   None,None,None,None
 
 def scale(img,bbox,landmark,ioulimit=0.4):
+	rnd=0
 	while(True):
-		scale=np.random.uniform(-0.15,0.4)	 #[-0.15,0.5) [0.7,2)
-		new_box=bbox.subBBox(-scale,scale,-scale,scale)
+		x_scale=np.random.uniform(-0.08,0.4)	 #[-0.15,0.5) [0.7,2)
+		y_scale=x_scale#np.random.uniform(-0.08,0.4)
+		new_box=bbox.subBBox(-x_scale,x_scale,-y_scale,y_scale)
 		IOU=getIOU(bbox,new_box)
 		
 		if(IOU>ioulimit ):
@@ -303,8 +311,8 @@ def scale(img,bbox,landmark,ioulimit=0.4):
 				if landmark is not None:	
 					new_landmark=np.zeros((5, 2))				
 					for i in range(5):					
-						new_landmark[i][0]=(landmark[i][0]-0.5)/(scale*2+1)+0.5							
-						new_landmark[i][1]=(landmark[i][1]-0.5)/(scale*2+1)+0.5
+						new_landmark[i][0]=(landmark[i][0]-0.5)/(x_scale*2+1)+0.5							
+						new_landmark[i][1]=(landmark[i][1]-0.5)/(y_scale*2+1)+0.5
 				else:
 					new_landmark=None
 				
@@ -312,19 +320,27 @@ def scale(img,bbox,landmark,ioulimit=0.4):
 				return new_face,new_box,new_landmark,IOU
 			else:
 				print "old",bbox
-				print "new",new_box	,new_box.left>0	,new_box.top>0,new_box.bottom+1<img.shape[0],new_box.right+1<img.shape[1] 
+				print "new",new_box	,new_box.left>0	,new_box.top>0,new_box.bottom+1<img.shape[0],new_box.right+1<img.shape[1] 		
+				rnd+=1
+				print '**********************',rnd
+				if rnd>100:
+					print 'failed'
+					return   None,None,None,None
 		
 	
 def shift_and_scale(img,bbox,landmark,ioulimit=0.4):
+	rnd=0
 	while(True):
-		new_center=(np.random.rand(),np.random.rand())  #random number from (0, 1)
-		x_shift=new_center[0]-0.5	
-		y_shift=new_center[1]-0.5		
+	
+		x_shift=np.random.uniform(-0.25,0.25)#random number from (-0.4, 0.4)
+		y_shift=np.random.uniform(-0.25,0.25)
 		
-		scale=np.random.uniform(-0.15,0.4)	 #[-0.3,0.1) [0.7,2)
 		
-		new_box=bbox.subBBox(-x_shift-scale,-x_shift+scale,-y_shift-scale,-y_shift+scale)
+		x_scale=np.random.uniform(-0.08,0.4)	 #[-0.3,0.8) [0.7,2)
+		y_scale=x_scale#np.random.uniform(-0.08,0.4)
 		
+		new_box=bbox.subBBox(x_shift-x_scale,x_shift+x_scale,y_shift-y_scale,y_shift+y_scale)
+		#print 'new_box', new_box
 		IOU=getIOU(bbox,new_box)
 		
 		if(IOU>ioulimit ):
@@ -333,17 +349,22 @@ def shift_and_scale(img,bbox,landmark,ioulimit=0.4):
 				if landmark is not None:	
 					new_landmark=np.zeros((5, 2))				
 					for i in range(5):					
-						new_landmark[i][0]=(landmark[i][0]+x_shift-0.5)/(scale*2+1)+0.5				
-						new_landmark[i][1]=(landmark[i][1]+y_shift-0.5)/(scale*2+1)+0.5
+						new_landmark[i][0]=(landmark[i][0]-x_shift-0.5)/(x_scale*2+1)+0.5				
+						new_landmark[i][1]=(landmark[i][1]-y_shift-0.5)/(y_scale*2+1)+0.5
 				else:
 					new_landmark=None
 				
-				new_face=img[new_box.top:new_box.bottom+1,new_box.left:new_box.right+1]			
+				new_face=img[new_box.top:new_box.bottom+1,new_box.left:new_box.right+1]	
+				#print 'before return',new_box		
 				return new_face,new_box,new_landmark,IOU
-			else:
+			else:				
 				print "old",bbox
 				print "new",new_box			
-
+				rnd+=1
+				print '**********************',rnd
+				if rnd>80:
+					print 'failed'
+					return   None,None,None,None
 
 '''def randomShift(landmarkGt, shift):
     """

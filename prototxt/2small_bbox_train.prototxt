@@ -1,5 +1,5 @@
 # This file gives the CNN model to predict all bbox in LEVEL-1
-name: "2_bbox"
+name: "2small_bbox"
 layer {
     name: "hdf5_train_data"
     type: "HDF5Data"
@@ -9,7 +9,7 @@ layer {
         phase: TRAIN
     }
     hdf5_data_param {
-        source: "train/2_bbox/train.txt"
+        source: "train/2small_bbox/train.txt"
         batch_size: 64
     }
 }
@@ -22,7 +22,7 @@ layer {
         phase: TEST
     }
     hdf5_data_param {
-        source: "train/2_bbox/test.txt"
+        source: "train/2small_bbox/test.txt"
         batch_size: 64
     }
 }
@@ -35,17 +35,17 @@ layer {
         lr_mult: 1
     }
     param {
-        lr_mult: 0#2
+        lr_mult: 0
     }
     convolution_param {
         num_output: 20
-        kernel_size: 3
+        kernel_size: 4
         weight_filler {
             type: "xavier"
         }
         bias_filler {
             type: "constant"
-            value:0
+            value: 0
         }
     }
 }
@@ -75,9 +75,9 @@ layer {
         lr_mult: 1
     }
     param {
-        lr_mult: 0#2
+        lr_mult: 0
     }
-    convolution_param {
+    convolution_param { 
         num_output: 40
         kernel_size: 3
         weight_filler {
@@ -85,8 +85,8 @@ layer {
         }
         bias_filler {
             type: "constant"
-            value:0
-        }
+            value: 0
+        }    
     }
 }
 layer {
@@ -115,18 +115,18 @@ layer {
         lr_mult: 1
     }
     param {
-        lr_mult: 0#2
-    }
+        lr_mult: 0
+    } 
     convolution_param {
-        num_output: 50#60
+        num_output:60
         kernel_size: 3
         weight_filler {
             type: "xavier"
         }
         bias_filler {
             type: "constant"
-            value:0
-        }
+            value: 0
+        }    
     }
 }
 layer {
@@ -154,19 +154,19 @@ layer {
     param {
         lr_mult: 1
     }
-    param {
-        lr_mult: 0#2
+     param {
+        lr_mult: 0
     }
     convolution_param {
-        num_output: 60#80
+        num_output: 80
         kernel_size: 2
         weight_filler {
             type: "xavier"
         }
         bias_filler {
             type: "constant"
-            value:0
-        }
+            value: 0
+        }      
     }
 }
 layer {
@@ -183,19 +183,18 @@ layer {
 #}
 #layer {
 #    name: "conv4_flat"
-#    type: "Flatten"
+#   type: "Flatten"
 #    bottom: "conv4"
-#    top: "conv4_flat"
+#   top: "conv4_flat"
 #}
 #layer {
 #    name: "concat"
 #    type: "Concat"
 #    bottom: "pool3_flat"
-#    bottom: "conv4_flat"
 #    top: "faker"
 #    concat_param {
-#      concat_dim: 1
-#    }
+#     concat_dim: 1
+#   }
 #}
 layer {
     name: "fc1"
@@ -206,7 +205,7 @@ layer {
         lr_mult: 1
     }
     param {
-        lr_mult: 0#2
+        lr_mult: 0
     }
     inner_product_param {
         num_output: 120
@@ -215,8 +214,8 @@ layer {
         }
         bias_filler {
             type: "constant"
-            value:0
-        }
+            value: 0
+        }        
     }
 }
 layer {
@@ -234,8 +233,8 @@ layer {
         lr_mult: 1
     }
     param {
-        lr_mult: 0#2
-    }
+        lr_mult: 2
+    } 
     inner_product_param {
         num_output: 4
         weight_filler {
@@ -243,16 +242,11 @@ layer {
         }
         bias_filler {
             type: "constant"
-            value:0
+            
+          
         }
     }
 }
-#layer {
-#    name: "relu_fc2"
-#    type: "ReLU"
-#    bottom: "bbox_pred"
-#    top: "bbox_pred"
-#}
 layer {
     name: "error"
     type: "EuclideanLoss"

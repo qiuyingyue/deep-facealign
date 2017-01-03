@@ -1,0 +1,46 @@
+
+39*39
+layers: conv4*4(relu pool) conv3*3(relu pool)  conv3*3(relu pool) conv2*2(relu pool)  flatten flatten concat  innerprod(relu) innerprod
+dataset: shift(-0.25,0.25), scale(-0.08,0.4), shift and scale, 
+610K     0.0036 
+--no bais: 
+610K   0.0046
+
+40*40
+--only last layer bais
+350K  0.00403
+
+38*38   
+layers: conv3*3(relu pool) conv3*3(relu pool)  conv3*3(relu pool) conv2*2(relu pool)  flatten flatten concat  innerprod(relu) innerprod
+dataset: shift(-0.25,0.25), scale(-0.08,0.4), shift and scale,  
+610K  0.00385    original
+
+480K  0.00385    cut conv channels  from 610K model
+
+430K  0.0039     cut innerproduct channels  from 480K model
+
+270K  0.0039	 cut flatten and concat layers from 480K model
+
+250K  0.00395    cut flatten and concat layers from 430K model
+
+--only last layer bais
+610K   0.0038   (25000 0.0051
+
+350K  0.00408	cut flatten and concat layers from 610K model  *(25000 0.0057   150000 0.0045
+
+270K   0.0042	cut flatten and concat layers from 480K model             (150000 0.0047
+
+--no bias
+610K  0.00386  *(25000 0.0056
+
+350K  0.00413
+
+
+--only last layer bais and cut last relu
+610K 0.0046
+
+--no bais and cut last relu:
+610K 0.0052
+
+
+

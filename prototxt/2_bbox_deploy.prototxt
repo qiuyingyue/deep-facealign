@@ -9,8 +9,8 @@ layer {
     memory_data_param {
         batch_size: 1
         channels: 1
-        height: 39
-        width: 39
+        height: 38
+        width: 38
     }
     transform_param {
         scale: 0.00390625
@@ -25,16 +25,17 @@ layer {
         lr_mult: 1
     }
     param {
-        lr_mult: 2
+        lr_mult: 0
     }
     convolution_param {
         num_output: 20
-        kernel_size: 4
+        kernel_size: 3
         weight_filler {
             type: "xavier"
         }
         bias_filler {
             type: "constant"
+            value:0
         }
     }
 }
@@ -106,7 +107,7 @@ layer {
         lr_mult: 2
     }
     convolution_param {
-        num_output: 60
+        num_output: 50#60
         kernel_size: 3
         weight_filler {
             type: "xavier"
@@ -145,7 +146,7 @@ layer {
         lr_mult: 2
     }
     convolution_param {
-        num_output: 80
+        num_output: 60#80
         kernel_size: 2
         weight_filler {
             type: "xavier"
@@ -161,32 +162,32 @@ layer {
     bottom: "conv4"
     top: "conv4"
 }
-layer {
-    name: "pool3_flat"
-    type: "Flatten"
-    bottom: "pool3"
-    top: "pool3_flat"
-}
-layer {
-    name: "conv4_flat"
-    type: "Flatten"
-    bottom: "conv4"
-    top: "conv4_flat"
-}
-layer {
-    name: "concat"
-    type: "Concat"
-    bottom: "pool3_flat"
-    bottom: "conv4_flat"
-    top: "faker"
-    concat_param {
-      concat_dim: 1
-    }
-}
+#layer {
+#    name: "pool3_flat"
+#    type: "Flatten"
+#    bottom: "pool3"
+#    top: "pool3_flat"
+#}
+#layer {
+#    name: "conv4_flat"
+#    type: "Flatten"
+#    bottom: "conv4"
+#    top: "conv4_flat"
+#}
+#layer {
+#    name: "concat"
+#    type: "Concat"
+#    bottom: "pool3_flat"
+#    bottom: "conv4_flat"
+#    top: "faker"
+#    concat_param {
+#      concat_dim: 1
+#   }
+#}
 layer {
     name: "fc1"
     type: "InnerProduct"
-    bottom: "faker"
+    bottom: "conv4"#"faker"
     top: "fc1"
     param {
         lr_mult: 1
@@ -231,9 +232,9 @@ layer {
         }
     }
 }
-layer {
-    name: "relu_fc2"
-    type: "ReLU"
-    bottom: "bbox_pred"
-    top: "bbox_pred"
-}
+#layer {
+#    name: "relu_fc2"
+#    type: "ReLU"
+#    bottom: "bbox_pred"
+#    top: "bbox_pred"
+#}

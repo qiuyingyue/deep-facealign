@@ -35,13 +35,18 @@ def appendlist(F_imgs,F_bboxs,F_landmarks,f_face,f_norm_bbox,f_landmark):
 	
 	f_face = f_face.reshape((channel, sz, sz))		
 	F_imgs.append(f_face)
-	#print f_norm_bbox
-	f_norm_bbox=np.array(f_norm_bbox)+0.5
 	
+	f_norm_bbox=np.array(f_norm_bbox)#+0.5
+	#print f_norm_bbox
 	F_bboxs.append(f_norm_bbox.reshape(4))
 	if F_landmarks is not None or f_landmark is not None:
 		F_landmarks.append(f_landmark.reshape(10))#f_landmark = landmarkGt.reshape(10)
 		
+def showBbox(img,bbox):
+	cv2.rectangle(img,(int(bbox.left),int(bbox.top)),(int(bbox.right),int(bbox.bottom)),(255,0,0),2)
+	cv2.imshow("a",img)
+	cv2.waitKey(0)	
+	
 def generate_hdf5_bbox(ftxt, output, dname,fname, train=False,with_bbox=True,with_landmark=False):
 
 
@@ -54,78 +59,87 @@ def generate_hdf5_bbox(ftxt, output, dname,fname, train=False,with_bbox=True,wit
 	num=0
 	for (imgPath, bbox) in data:		
 		img = cv2.imread(imgPath, cv2.CV_LOAD_IMAGE_GRAYSCALE)
+		#img = cv2.imread(imgPath)
 		print imgPath
 		assert(img is not None)
 		logger("process %s" % imgPath)
 		# F
 		f_bbox = bbox#.subBBox(-0.05, 0.05, -0.05, 0.05)
 		f_face = img[f_bbox.top:f_bbox.bottom+1,f_bbox.left:f_bbox.right+1]
-		
 
+		#showBbox(img,bbox)		
 		
 		if train:
-			times=5
+			times=3
 		else:
 			times=1
 		### random shift and scale
 		for i in range(times): #if argument and np.random.rand() > -1:
+			
+			
 			###shift 	
 			face_shifted,bbox_shifted,landmark_shifted,IOU=shift(img,f_bbox,None,0.4)
-			appendlist(F_imgs,F_bboxs,None,face_shifted,bbox_shifted.norm_box(),None)			
-			#show_landmark(face_shifted,landmark_shifted)
+			if IOU is not None:
+				appendlist(F_imgs,F_bboxs,None,face_shifted,bbox_shifted.norm_box(),None)			
 			
-			### flip
-			face_flipped, landmark_flipped = flip(face_shifted, landmark_shifted)			
-			appendlist(F_imgs,F_bboxs,None,face_flipped,bbox_shifted.flip_norm_box(),None)
-			#show_landmark(face_flipped,landmark_flipped)
+				### shift+flip
+				face_flipped, landmark_flipped = flip(face_shifted, landmark_shifted)			
+				appendlist(F_imgs,F_bboxs,None,face_flipped,bbox_shifted.flip_norm_box(),None)
 						
-			#scale
+			###scale
 			face_scaled,bbox_scaled,landmark_scaled,IOU=scale(img,f_bbox,None)
 			appendlist(F_imgs,F_bboxs,None,face_scaled,bbox_scaled.norm_box(),None)			
-			#show_landmark(face_scaled,landmark_scaled)
-			### flip
+
+			### scale+flip
 			face_flipped, landmark_flipped = flip(face_scaled, landmark_scaled)			
 			appendlist(F_imgs,F_bboxs,None,face_flipped,bbox_scaled.flip_norm_box(),None)
-			#show_landmark(face_flipped,landmark_flipped)		
 			
-			#shift and scale
-			face_shifted_scaled,bbox_shifted_scaled,landmark_shifted_scaled,IOU=shift_and_scale(img,f_bbox,None)
-			appendlist(F_imgs,F_bboxs,None,face_shifted_scaled,bbox_shifted_scaled.norm_box(),None)			
-			#show_landmark(face_shifted_scaled,landmark_shifted_scaled)
-						
-			### flip
-			face_flipped, landmark_flipped = flip(face_shifted_scaled, landmark_shifted_scaled)			
-			appendlist(F_imgs,F_bboxs,None,face_flipped,bbox_shifted_scaled.flip_norm_box(),None)
-			#show_landmark(face_flipped,landmark_flipped)
+								
+			###shift and scale
+			face_shifted_scaled,bbox_shifted_scaled,landmark_shifted_scaled,IOU=shift_and_scale(img,f_bbox,None,0.4)
+			if IOU is not None:
+				appendlist(F_imgs,F_bboxs,None,face_shifted_scaled,bbox_shifted_scaled.norm_box(),None)		
+				#print bbox_shifted_scaled.norm_box()	
+				#showBbox(img,bbox_shifted_scaled)		
+								
+				### flip
+				face_flipped, landmark_flipped = flip(face_shifted_scaled, landmark_shifted_scaled)			
+				appendlist(F_imgs,F_bboxs,None,face_flipped,bbox_shifted_scaled.flip_norm_box(),None)
+				
+				
+			###shift and scale
+			face_shifted_scaled,bbox_shifted_scaled,landmark_shifted_scaled,IOU=shift_and_scale(img,f_bbox,None,0.4)
+			if IOU is not None:
+				appendlist(F_imgs,F_bboxs,None,face_shifted_scaled,bbox_shifted_scaled.norm_box(),None)			
+				#print bbox_shifted_scaled.norm_box()
+				#showBbox(img,bbox_shifted_scaled)					
+				
+				### flip
+				face_flipped, landmark_flipped = flip(face_shifted_scaled, landmark_shifted_scaled)			
+				appendlist(F_imgs,F_bboxs,None,face_flipped,bbox_shifted_scaled.flip_norm_box(),None)
 
-			### scale
-			
-			### rotation 5 degree
-			'''if np.random.rand() > 0.5:
-				face_rotated_by_alpha, landmark_rotated = rotate(img, f_bbox, bbox.reprojectLandmark(landmarkGt), 5)
-				landmark_rotated = bbox.projectLandmark(landmark_rotated)				
-				appendlist(F_imgs,F_bboxs,F_landmarks,face_rotated_by_alpha,f_bbox.norm_box(),landmark_rotated)
+			###shift and scale
+			face_shifted_scaled,bbox_shifted_scaled,landmark_shifted_scaled,IOU=shift_and_scale(img,f_bbox,None,0.4)
+			if IOU is not None:
+				appendlist(F_imgs,F_bboxs,None,face_shifted_scaled,bbox_shifted_scaled.norm_box(),None)			
+				#print bbox_shifted_scaled.norm_box()
+				#showBbox(img,bbox_shifted_scaled)					
+				
+				### flip
+				face_flipped, landmark_flipped = flip(face_shifted_scaled, landmark_shifted_scaled)			
+				appendlist(F_imgs,F_bboxs,None,face_flipped,bbox_shifted_scaled.flip_norm_box(),None)
+					
 
-				### flip with rotation
-				face_flipped, landmark_flipped = flip(face_rotated_by_alpha, landmark_rotated)
-				appendlist(F_imgs,F_bboxs,F_landmarks,face_flipped,f_bbox.norm_box(),landmark_flipped)
-
-			### rotation -5 degree
-			if np.random.rand() > 0.5:
-				face_rotated_by_alpha, landmark_rotated = rotate(img, f_bbox, bbox.reprojectLandmark(landmarkGt), -5)
-				landmark_rotated = bbox.projectLandmark(landmark_rotated)				
-				appendlist(F_imgs,F_bboxs,F_landmarks,face_rotated_by_alpha,f_bbox.norm_box(),landmark_rotated)
-
-				### flip with rotation
-				face_flipped, landmark_flipped = flip(face_rotated_by_alpha, landmark_rotated)
-				appendlist(F_imgs,F_bboxs,F_landmarks,face_flipped,f_bbox.norm_box(),landmark_flipped)'''
-
-
+				
 		appendlist(F_imgs,F_bboxs,None,f_face,f_bbox.norm_box(),None)
 		
+		### flip
+		face_flipped, landmark_flipped = flip(f_face, None)			
+		appendlist(F_imgs,F_bboxs,None,face_flipped,f_bbox.flip_norm_box(),None)
+				
 		num=num+1
 		
-		if num>=10000 or num>=len(data):
+		if num>=15000 or num>=len(data):
 			F_imgs, F_bboxs= np.asarray(F_imgs), np.asarray(F_bboxs)
 			F_imgs = processImage(F_imgs)
 			shuffle_in_unison_scary(F_imgs,F_bboxs)
@@ -224,7 +238,7 @@ def generate_hdf5(ftxt, output,dname, fname, train=False,with_bbox=True,with_lan
 		
 		num=num+1
 		
-		if num>=10000 or num>=len(data):
+		if num>=13000 or num>=len(data):
 			F_imgs, F_bboxs,F_landmarks = np.asarray(F_imgs), np.asarray(F_bboxs),np.asarray(F_landmarks)
 			F_imgs = processImage(F_imgs)
 			shuffle_in_unison_scary(F_imgs,F_bboxs,F_landmarks)
@@ -331,18 +345,18 @@ def generate_hdf5_landmark(ftxt, output,dname, fname, argument=False,with_bbox=F
 
 if __name__ == '__main__':
 	# train data
-	full_name="3_bbox"
+	full_name="2small_bbox"
 	tp_name="bbox"
-	train_txt = join(TRAIN, 'lfpw_train_734_bbox.txt')#trainImageList
-	generate_hdf5_bbox(train_txt, OUTPUT,full_name, 'train_%s.h5'%tp_name, train=True)
+	train_txt = join(TRAIN, 'trainBoxList.txt')#trainImageList
+	generate_hdf5_bbox(train_txt, OUTPUT,full_name, 'train_%s_39.h5'%tp_name, train=True)
 
-	test_txt = join(TRAIN, 'valList.txt')#valImageList
-	generate_hdf5_bbox(test_txt, OUTPUT, full_name,'test_%s.h5'%tp_name)
+	test_txt = join(TRAIN, 'valBoxList.txt')#valImageList
+	generate_hdf5_bbox(test_txt, OUTPUT, full_name,'test_%s_39.h5'%tp_name)
 
-	with open(join(OUTPUT, '%s/train.txt'%full_name), 'w') as fd:
-		fd.write('train/%s/train_%s.h5'%(full_name,tp_name))
-	with open(join(OUTPUT, '3_%s/test.txt'%tp_name), 'w') as fd:
-		fd.write('train/%s/test_%s.h5'%(full_name,tp_name))
+	#with open(join(OUTPUT, '%s/train.txt'%full_name), 'w') as fd:
+	#	fd.write('train/%s/train_%s.h5'%(full_name,tp_name))
+	#with open(join(OUTPUT, '%s/test.txt'%full_name), 'w') as fd:
+	#	fd.write('train/%s/test_%s.h5'%(full_name,tp_name))
 		
 
 
